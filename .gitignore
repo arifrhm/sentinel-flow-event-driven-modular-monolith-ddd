@@ -1,0 +1,25 @@
+# Compiled binaries
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Testing & Coverage Artifacts
+*.out
+*.html
+coverage.out
+coverage.html
+
+# Go tooling/caches
+.gocache/
+.gotmp/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Environment variables & secrets
+.env
+.env.*
+!*.example

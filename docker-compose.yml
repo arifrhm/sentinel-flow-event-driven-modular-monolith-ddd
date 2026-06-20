@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Redis: Used as the production message broker (via Redis Streams)
+  redis:
+    image: redis:7.2-alpine
+    container_name: sentinel-flow-broker
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # PostgreSQL: Used as the production persistent database
+  postgres:
+    image: postgres:15-alpine
+    container_name: sentinel-flow-db
+    environment:
+      POSTGRES_USER: sentinel_flow_admin
+      POSTGRES_PASSWORD: sentinel_flow_secure_password
+      POSTGRES_DB: sentinel_flow_production
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Monolith: The modular monolith container service
+  monolith:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinel-flow-monolith
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+      - "8084:8084"
+    environment:
+      - DATABASE_TYPE=postgres
+      - DATABASE_URL=postgres://sentinel_flow_admin:sentinel_flow_secure_password@postgres:5432/sentinel_flow_production?sslmode=disable
+      - BROKER_TYPE=redis
+      - REDIS_URL=redis://redis:6379
+      - LOG_FORMAT=json
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
